@@ -37,16 +37,14 @@ fun main() {
 }
 
 fun extractData(input: List<String>): DataResult {
-    val leftList = mutableListOf<Int>()
-    val rightList = mutableListOf<Int>()
     val occurrences = mutableMapOf<Int, Int>()
 
-    input.forEach { line ->
-        val (left, right) = line.split("\\s+".toRegex()).map { it.toInt() }
-        leftList.add(left)
-        rightList.add(right)
-        occurrences[right] = (occurrences[right] ?: 0) + 1
-    }
+    val (leftList, rightList) = input.map{
+        val first = it.substringBefore(" ").toInt()
+        val second = it.substringAfterLast(" ").toInt()
+        occurrences[second] = (occurrences[second] ?: 0) + 1
+        first to second
+    }.unzip()
 
     return DataResult(leftList.sorted(), rightList.sorted(), occurrences)
 }
