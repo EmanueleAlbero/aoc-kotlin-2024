@@ -7,18 +7,22 @@ import kotlin.math.abs
 
 fun main() {
 
-    fun isSafe(it: List<Int>) =
-        it.zipWithNext().all { (a, b) -> (a < b && abs(a - b) in 1..3) }
-        ||
-        it.zipWithNext().all { (a, b) -> (a > b && abs(a - b) in 1..3) }
+    fun isSafeAscending(it: List<Int>) = it.zipWithNext().all { (a, b) -> (a < b && abs(a - b) in 1..3) }
+
+    fun isSafeDescending(it: List<Int>) = it.zipWithNext().all { (a, b) -> (a > b && abs(a - b) in 1..3) }
+
+    fun isSafe(it: List<Int>) = isSafeAscending(it) || isSafeDescending(it)
 
     fun part1(scores: List<List<Int>>) = scores.count { isSafe(it) }
 
     fun part2(scores: List<List<Int>>)  =
-        scores.count {
-                it.indices.any { index ->
-                    val modifiedScores = it.toMutableList().apply { removeAt(index) }
-                    isSafe(modifiedScores)
+        scores.count { scoreList ->
+            scoreList.indices.any { index ->
+                    isSafe(
+                        scoreList.withIndex()
+                        .filter { it.index != index }
+                        .map { it.value }
+                    )
                 }
             }
 
