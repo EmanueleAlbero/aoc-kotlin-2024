@@ -2,7 +2,7 @@ import java.io.File
 
 fun main() {
     val yearString = "2024"
-    val dayString = "01"
+    val dayString = "02"
 
     val baseDir = File(".")
     val resourcesDir = File(baseDir, "resources/aoc$yearString")

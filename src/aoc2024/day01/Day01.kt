@@ -9,7 +9,7 @@ fun main() {
 
     fun part1(input: DataResult): Int = input.leftList.zip(input.rightList).sumOf { abs(it.first - it.second) }
 
-    fun part2(input: DataResult) = input.leftList.sumOf { it * (input.occurrences[it] ?: 0) }
+    fun part2(input: DataResult) = input.leftList.sumOf { it * (input.frequencies[it] ?: 0) }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2024/Day01_test")
@@ -37,20 +37,18 @@ fun main() {
 }
 
 fun extractData(input: List<String>): DataResult {
-    val occurrences = mutableMapOf<Int, Int>()
-
     val (leftList, rightList) = input.map{
         val first = it.substringBefore(" ").toInt()
         val second = it.substringAfterLast(" ").toInt()
-        occurrences[second] = (occurrences[second] ?: 0) + 1
         first to second
     }.unzip()
+    val frequencies = rightList.groupingBy { it }.eachCount()
 
-    return DataResult(leftList.sorted(), rightList.sorted(), occurrences)
+    return DataResult(leftList.sorted(), rightList.sorted(), frequencies)
 }
 
 data class DataResult(
     val leftList: List<Int>,
     val rightList: List<Int>,
-    val occurrences: Map<Int, Int>
+    val frequencies: Map<Int, Int>
 )
