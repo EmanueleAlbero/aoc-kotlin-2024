@@ -8,26 +8,17 @@ import kotlin.math.abs
 fun main() {
 
     fun isSafe(it: List<Int>) =
-        it
-            .zipWithNext()
-            .all {
-                (a, b) -> (a < b && abs(a - b) in 1..3)
-            }
+        it.zipWithNext().all { (a, b) -> (a < b && abs(a - b) in 1..3) }
         ||
-        it
-            .zipWithNext()
-            .all {
-                (a, b) -> (a > b && abs(a - b) in 1..3)
-            }
+        it.zipWithNext().all { (a, b) -> (a > b && abs(a - b) in 1..3) }
 
     fun part1(scores: List<List<Int>>) = scores.count { isSafe(it) }
 
     fun part2(scores: List<List<Int>>)  =
         scores.count {
-            isSafe(it) ||
                 it.indices.any { index ->
-                    val modifiedReport = it.toMutableList().apply { removeAt(index) }
-                    isSafe(modifiedReport)
+                    val modifiedScores = it.toMutableList().apply { removeAt(index) }
+                    isSafe(modifiedScores)
                 }
             }
 
