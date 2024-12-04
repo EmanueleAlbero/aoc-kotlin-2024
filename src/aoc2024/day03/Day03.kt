@@ -20,11 +20,9 @@ fun main() {
             }
             ?: 0
 
-    fun getValidInstructions(input: String, regex: Regex = INSTRUCTION_REGEX_PART1): List<String> {
-        val matches = regex.findAll(input).map { it.value }.toList()
-        return matches
-    }
-
+    fun getValidInstructions(input: String, regex: Regex = INSTRUCTION_REGEX_PART1) = 
+        regex.findAll(input).map { it.value }.toList()
+    
     fun part1(input: String) =
         getValidInstructions(input, INSTRUCTION_REGEX_PART1)
             .let {
