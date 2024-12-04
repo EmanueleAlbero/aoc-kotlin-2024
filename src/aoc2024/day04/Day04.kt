@@ -39,17 +39,15 @@ fun main() {
         } as Int
     }
 
-    fun part1(cGrid: CharGrid2D): Int {
-        return foldGrid(cGrid, 'X') { grid, x, y ->
+    fun part1(cGrid: CharGrid2D) =
+        foldGrid(cGrid, 'X') { grid, x, y ->
             countXMASWordFromHere(grid, x, y)
         }
-    }
 
-    fun part2(cGrid: CharGrid2D): Int {
-        return foldGrid(cGrid, 'A') { grid, x, y ->
+    fun part2(cGrid: CharGrid2D) =
+        foldGrid(cGrid, 'A') { grid, x, y ->
             if (isNewXMasWord(grid, x, y)) 1 else 0
         }
-    }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("aoc2024/Day04_test")
