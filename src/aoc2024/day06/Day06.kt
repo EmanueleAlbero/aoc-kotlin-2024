@@ -30,64 +30,35 @@ fun main() {
     fun part2(input: List<String>): Int {
         val grid = CharGrid2D(input){ it -> it}
         val startPosition = grid.find('^') ?: return 0
-        val loopsMoves: MutableSet<Item<Char>> = mutableSetOf()
         var loops: AtomicInteger = AtomicInteger(0)
-        val bounceIdentified = '@'
 
         visitedPosition
             .filterNot { it == startPosition }
             .parallelStream()
             .forEach { (x, y) ->
                 val localGrid = CharGrid2D(input){ it -> it}
+                val moves: MutableSet<Item<Char>> = mutableSetOf()
                 localGrid.setValue(x, y, '#')
-                localGrid.setPosition(x,y)
-                val obstacleInteractionMoves =
-                    localGrid
-                        .getNeighbors(listOf(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT))
-                        .filter { it.value != '#'}
-                        .flatMap { value ->
-                            listOf(
-                                Item<Char>(value.x, value.y, Direction.Inverted(value.direction), value.value),
-                                Item<Char>(value.x, value.y, Direction.Inverted(value.direction), bounceIdentified),
-                            ) }
 
-                val moves: MutableList<Item<Char>> = mutableListOf()
-
-                localGrid.setPosition(startPosition.first, startPosition.second)
                 var direction = Direction.UP
-                var loopFound = false
+                var isLoop: Boolean = false
+                localGrid.setPosition(startPosition.first, startPosition.second)
                 while (localGrid.canMove(direction)) {
                     var nextPosition = localGrid.getNeighbors(listOf(direction))[0]
                     while (nextPosition.value == '#') {
                         direction = Direction.rotateRight(direction)
-                        moves.add(Item(
-                            localGrid.getCurrentPosition().first,
-                            localGrid.getCurrentPosition().second,
-                            direction,
-                            bounceIdentified,
-                        ))
                         nextPosition = localGrid.getNeighbors(listOf(direction))[0]
                     }
 
-                    if (nextPosition in loopsMoves) {
-                        loopFound = true
+                    if ( moves.contains(nextPosition) ) {
+                        isLoop = true
                         break
                     }
 
-                    val previousOccurrence = moves.indexOf(nextPosition)
-                    if ( previousOccurrence >= 0) {
-                        /*if (obstacleInteractionMoves.none{ moves.indexOf(it) >= previousOccurrence }) {
-                            loopsMoves.addAll(moves.subList(previousOccurrence, moves.size-1))
-                        }*/
-                        loopFound = true
-                        break
-                    }
                     moves.add(nextPosition)
                     localGrid.move(direction)
                 }
-                if (loopFound) {
-                    loops.getAndIncrement()
-                }
+                if (isLoop) loops.incrementAndGet()
                 localGrid.setValue(x, y, '.')
             }
             return loops.get()
