@@ -22,5 +22,32 @@ enum class Direction {
             "B_R" -> DOWN_RIGHT
             else -> throw IllegalArgumentException()
         }
+
+        fun rotateRight(currentDirection: Direction): Direction {
+            return when (currentDirection) {
+                UP -> RIGHT
+                RIGHT -> DOWN
+                DOWN -> LEFT
+                LEFT -> UP
+                UP_LEFT -> UP_RIGHT
+                UP_RIGHT -> DOWN_RIGHT
+                DOWN_LEFT -> DOWN_LEFT
+                DOWN_RIGHT -> UP_LEFT
+            }
+        }
+
+        fun Inverted(direction: Direction?): Direction? {
+            return when (direction) {
+                UP -> DOWN
+                DOWN -> UP
+                LEFT -> RIGHT
+                RIGHT -> LEFT
+                UP_LEFT -> DOWN_RIGHT
+                UP_RIGHT -> DOWN_LEFT
+                DOWN_LEFT -> UP_RIGHT
+                DOWN_RIGHT -> UP_LEFT
+                else -> null
+            }
+        }
     }
 }
