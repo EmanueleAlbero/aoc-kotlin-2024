@@ -6,47 +6,6 @@ import common.readInputAsString
 
 fun main() {
 
-    fun part1(input: String): Long {
-        val values = (input + "0").toList().map(){ it.digitToInt() }
-        val array: ArrayDeque<Int> = ArrayDeque()
-
-        var left = -2
-        var right = values.size + 1
-        var leftSpaceAvailable = 0
-        var rightSpaceRequired = 0
-        var rightValue = 0
-        while (left+2 < (right -1)) {
-            if (leftSpaceAvailable == 0) {
-                left += 2
-                val leftValue = values[left]
-                leftSpaceAvailable = values[left + 1]
-                repeat(leftValue) { array.add(left / 2) }
-            }
-            if (rightSpaceRequired == 0) {
-                right -= 2
-                rightValue = (right - 1) / 2
-                rightSpaceRequired = values[right - 1]
-            }
-
-            if (leftSpaceAvailable > 0 && rightSpaceRequired > 0) {
-                if (rightSpaceRequired > leftSpaceAvailable) {
-                    rightSpaceRequired -= leftSpaceAvailable
-                    repeat(leftSpaceAvailable) { array.add(rightValue) }
-                    leftSpaceAvailable = 0
-                } else {
-                    leftSpaceAvailable -= rightSpaceRequired
-                    repeat(rightSpaceRequired) { array.add(rightValue) }
-                    rightSpaceRequired = 0
-                }
-            }
-        }
-        if (rightSpaceRequired > 0) {
-            repeat(rightSpaceRequired) { array.add(rightValue) }
-        }
-
-        return array.foldIndexed(0) { index, acc, value -> acc + (value*index) }
-    }
-
     data class Segment(val id: Int, val fileLength: Int, val freeLength: Int)
 
     class Checksum(){
@@ -60,6 +19,46 @@ fun main() {
         fun getChecksum(): Long {
             return checksum
         }
+    }
+
+    fun part1(input: String): Long {
+        val values = (input + "0").toList().map(){ it.digitToInt() }
+        val checksum = Checksum()
+
+        var left = -2
+        var right = values.size + 1
+        var leftSpaceAvailable = 0
+        var rightSpaceRequired = 0
+        var rightValue = 0
+
+        while (left+2 < (right -1)) {
+            if (leftSpaceAvailable == 0) {
+                left += 2
+                val leftValue = values[left]
+                leftSpaceAvailable = values[left + 1]
+                checksum.addChunk(left/2, leftValue)
+            }
+            if (rightSpaceRequired == 0) {
+                right -= 2
+                rightValue = (right - 1) / 2
+                rightSpaceRequired = values[right - 1]
+            }
+
+            if (leftSpaceAvailable > 0 && rightSpaceRequired > 0) {
+                if (rightSpaceRequired > leftSpaceAvailable) {
+                    rightSpaceRequired -= leftSpaceAvailable
+                    checksum.addChunk(rightValue, leftSpaceAvailable)
+                    leftSpaceAvailable = 0
+                } else {
+                    leftSpaceAvailable -= rightSpaceRequired
+                    checksum.addChunk(rightValue, rightSpaceRequired)
+                    rightSpaceRequired = 0
+                }
+            }
+        }
+        checksum.addChunk(rightValue, rightSpaceRequired)
+
+        return checksum.getChecksum()
     }
 
     fun part2(input: String): Long {
@@ -81,8 +80,7 @@ fun main() {
             var foundFit = false
             var searchIndex = segments.lastIndex
             while (searchIndex > currentIndex && segments[currentIndex].freeLength > 0) {
-                val candidate = segments[searchIndex]
-                if (candidate.id > 0 && candidate.fileLength <= segments[currentIndex].freeLength) {
+                if (segments[searchIndex].id > 0 && segments[searchIndex].fileLength <= segments[currentIndex].freeLength) {
                     foundFit = true
                     break
                 }

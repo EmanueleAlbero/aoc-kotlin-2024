@@ -198,6 +198,21 @@ abstract class Grid2D<T>(
         }
     }
 
+    fun findAllItems(finder: (T) -> Boolean): Sequence<Item<T>> = sequence {
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                if (finder(data[y][x] as T)) {
+                    yield(Item(
+                        x,
+                        y,
+                        null,
+                        (data[y][x] as T)
+                    ))
+                }
+            }
+        }
+    }
+
     fun findPath(
         startPosition: List<Pair<Int, Int>>,
         endPosition: List<Pair<Int, Int>>,
