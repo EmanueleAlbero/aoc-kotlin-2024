@@ -99,11 +99,13 @@ fun main() {
                 continue
             }
 
-            val candidate = segments[searchIndex]
             checksum.addChunk(segments[searchIndex].id, segments[searchIndex].fileLength)
-            val updatedFree = segments[currentIndex].freeLength - candidate.fileLength
-            segments[currentIndex] = segments[currentIndex].copy(freeLength = updatedFree)
-            segments[searchIndex] = segments[searchIndex].copy(id = 0)
+            segments[currentIndex] =
+                segments[currentIndex]
+                    .copy(freeLength = segments[currentIndex].freeLength - segments[searchIndex].fileLength)
+            segments[searchIndex] =
+                segments[searchIndex]
+                    .copy(id = 0)
         }
 
         return checksum.getChecksum()
