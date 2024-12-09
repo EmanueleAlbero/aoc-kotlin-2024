@@ -6,7 +6,7 @@ import common.readInputAsString
 
 fun main() {
 
-    data class Segment(val id: Int, val fileLength: Int, val freeLength: Int)
+    data class Segment(var id: Int, val fileLength: Int, var freeLength: Int)
 
     class Checksum(){
         private var size = 0L
@@ -62,48 +62,61 @@ fun main() {
     }
 
     fun part2(input: String): Long {
+        val buckets: Array<ArrayDeque<Pair<Int, Int>>> = Array(10){ ArrayDeque<Pair<Int, Int>>() }
         val segments = (input + "0")
             .chunked(2)
             .mapIndexed { index, chars ->
+                buckets[chars[0].digitToInt()].add(index to chars[0].digitToInt())
                 Segment(
                     id = index,
                     fileLength = chars[0].digitToInt(),
-                    freeLength = chars[1].digitToInt()
+                    freeLength = chars[1].digitToInt(),
                 )
-            }.toMutableList()
+            }.toTypedArray()
 
         var currentIndex = 0
         val checksum = Checksum()
 
-        checksum.addChunk(segments[currentIndex].id, segments[currentIndex].fileLength)
-        while (currentIndex < segments.size) {
-            var foundFit = false
-            var searchIndex = segments.lastIndex
-            while (searchIndex > currentIndex && segments[currentIndex].freeLength > 0) {
-                if (segments[searchIndex].id > 0 && segments[searchIndex].fileLength <= segments[currentIndex].freeLength) {
-                    foundFit = true
-                    break
+        fun getIndexForFreeLength(freeLength: Int): Int? {
+            var nextElement = Pair(-1, -1)
+            for (i in 0 .. freeLength) {
+                if (buckets[i].isNotEmpty()) {
+                    buckets[i].lastOrNull() ?.let {
+                        if (it.first > nextElement.first) nextElement = it
+                    }
                 }
-                searchIndex--
+            }
+            if (nextElement.first >= 0) {
+                buckets[nextElement.second].removeLast()
+                return nextElement.first
+            } else return null
+        }
+
+        checksum.addChunk(segments[currentIndex].id, segments[currentIndex].fileLength)
+        var currentElement = segments[currentIndex]
+        while (true) {
+            var searchIndex = getIndexForFreeLength(currentElement.freeLength)
+
+            if (searchIndex != null && searchIndex < currentIndex) {
+                searchIndex = null
             }
 
-            if (!foundFit) {
-                if (segments[currentIndex].freeLength > 0) {
-                    checksum.addChunk(0, segments[currentIndex].freeLength)
+            if (searchIndex != null) {
+                val searchedElement = segments[searchIndex]
+                checksum.addChunk(searchedElement.id, searchedElement.fileLength)
+                currentElement.freeLength -= searchedElement.fileLength
+                searchedElement.id = 0
+            }
+
+            if (currentElement.freeLength == 0 || searchIndex == null) {
+                if (currentElement.freeLength > 0) {
+                    checksum.addChunk(0, currentElement.freeLength)
                 }
                 currentIndex++
                 if (currentIndex == segments.size) break
-                checksum.addChunk(segments[currentIndex].id, segments[currentIndex].fileLength)
-                continue
+                currentElement = segments[currentIndex]
+                checksum.addChunk(currentElement.id, currentElement.fileLength)
             }
-
-            checksum.addChunk(segments[searchIndex].id, segments[searchIndex].fileLength)
-            segments[currentIndex] =
-                segments[currentIndex]
-                    .copy(freeLength = segments[currentIndex].freeLength - segments[searchIndex].fileLength)
-            segments[searchIndex] =
-                segments[searchIndex]
-                    .copy(id = 0)
         }
 
         return checksum.getChecksum()
