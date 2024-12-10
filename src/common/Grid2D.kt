@@ -15,8 +15,7 @@ enum class Algorithm {
     BFS,
     DFS,
     DIJKSTRA,
-    ASTAR,
-    ALL_PATHS_DFS
+    ASTAR
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -53,6 +52,9 @@ abstract class Grid2D<T>(
             null
         }
     }
+
+    open fun getElementAt(point: Pair<Int, Int>): T? =
+        getElementAt(point.first, point.second)
 
     fun canMove(direction: Direction): Boolean {
         return when (direction) {
@@ -129,12 +131,12 @@ abstract class Grid2D<T>(
         return x in 0 until width && y in 0 until height
     }
 
-    open fun getNeighbors(directions: List<Direction>): List<Item<T>> {
+    open fun getNeighbors(position: Pair<Int, Int>, directions: List<Direction>): List<Item<T>> {
         val neighbours = mutableListOf<Item<T>>()
 
         for (direction in directions) {
-            val newX = currentX + dx(direction)
-            val newY = currentY + dy(direction)
+            val newX = position.first + dx(direction)
+            val newY = position.second + dy(direction)
             if (isValidPosition(newX, newY)) {
                 val value = data[newY][newX] as T
                 neighbours.add(Item(newX, newY, direction, value))
@@ -142,6 +144,9 @@ abstract class Grid2D<T>(
         }
         return neighbours
     }
+
+    open fun getNeighbors(directions: List<Direction>): List<Item<T>> =
+        getNeighbors(getCurrentPosition(), directions)
 
     open fun getRow(y: Int): List<Item<T>> {
         val row = mutableListOf<Item<T>>()
@@ -240,27 +245,44 @@ abstract class Grid2D<T>(
                 }
                 return findPathAStar(startPosition, endPosition, moveValidator, costFunction, heuristic)
             }
-            Algorithm.ALL_PATHS_DFS -> {
-                val allPaths = mutableListOf<List<Pair<Int, Int>>>()
-                val memoizationCache = mutableMapOf<Pair<Int, Int>, List<List<Pair<Int, Int>>>>()
-                for (start in startPosition) {
-                    val paths = findAllPathsDFS(
-                        start,
-                        endPosition.first(),
-                        moveValidator,
-                        mutableSetOf(),
-                        mutableListOf(),
-                        memoizationCache
-                    )
-                    allPaths.addAll(paths)
-                }
-                val bestPath = findBestPath(allPaths)
-                return bestPath ?: emptyList()
-            }
             else -> {
                 return emptyList()
             }
         }
+    }
+
+    fun findAllPathTo(
+        startPosition: Pair<Int, Int>,
+        goalCriteria: (T) -> Boolean,
+        moveValidator: (T, T) -> Boolean,
+    ): List<List<Pair<Int, Int>>> {
+        val memoizationCache = mutableMapOf<Pair<Int, Int>, List<List<Pair<Int, Int>>>>()
+        return findAllPathsDFS(
+                startPosition,
+                goalCriteria,
+                moveValidator,
+                mutableSetOf(),
+                mutableListOf(),
+                memoizationCache
+            )
+    }
+
+    fun findAllPathTo(
+        startPosition: List<Pair<Int, Int>>,
+        goalCriteria: (T) -> Boolean,
+        moveValidator: (T, T) -> Boolean,
+    ): List<List<Pair<Int, Int>>> {
+        val allPaths = mutableListOf<List<Pair<Int, Int>>>()
+        for (start in startPosition) {
+            allPaths.addAll(
+                findAllPathTo(
+                    start,
+                    goalCriteria,
+                    moveValidator,
+                )
+            )
+        }
+        return allPaths
     }
 
     fun findBestPath(allPaths: List<List<Pair<Int, Int>>>): List<Pair<Int, Int>>? {
@@ -362,44 +384,38 @@ abstract class Grid2D<T>(
 
     private fun findAllPathsDFS(
         currentPosition: Pair<Int, Int>,
-        endPosition: Pair<Int, Int>,
+        goalCriteria: (T) -> Boolean,
         moveValidator: (T, T) -> Boolean,
         visited: MutableSet<Pair<Int, Int>>,
         currentPath: MutableList<Pair<Int, Int>>,
         memoizationCache: MutableMap<Pair<Int, Int>, List<List<Pair<Int, Int>>>>
     ): List<List<Pair<Int, Int>>> {
-        val allowedDirections = listOf(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT)
-        // Controlla se i percorsi da questa posizione sono già stati calcolati
-        if (memoizationCache.containsKey(currentPosition)) {
-            return memoizationCache[currentPosition]!!
-        }
+        memoizationCache[currentPosition]?.let { return it }
 
+        val allowedDirections = listOf(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT)
         val pathsFromCurrent = mutableListOf<List<Pair<Int, Int>>>()
 
         currentPath.add(currentPosition)
         visited.add(currentPosition)
 
-        if (currentPosition == endPosition) {
+        val currentElement = getElementAt(currentPosition)
+        if (goalCriteria(currentElement!!)) {
             pathsFromCurrent.add(ArrayList(currentPath))
         } else {
-            val (x, y) = currentPosition
-            setPosition(x, y)
-            val neighbors = getNeighbors(allowedDirections)
+            val neighbors = getNeighbors(currentPosition, allowedDirections)
             for (neighbor in neighbors) {
                 val nextPosition = neighbor.x to neighbor.y
-                if (!visited.contains(nextPosition) && moveValidator(getElementAt(x, y)!!, neighbor.value)) {
+                if (!visited.contains(nextPosition) && moveValidator(currentElement, neighbor.value)) {
                     val pathsFromNeighbor = findAllPathsDFS(
                         nextPosition,
-                        endPosition,
+                        goalCriteria,
                         moveValidator,
                         visited,
                         currentPath,
                         memoizationCache
                     )
                     for (path in pathsFromNeighbor) {
-                        val newPath = ArrayList(currentPath)
-                        newPath.addAll(path.drop(currentPath.size))
-                        pathsFromCurrent.add(newPath)
+                        pathsFromCurrent.add(ArrayList(path))
                     }
                 }
             }
@@ -408,7 +424,6 @@ abstract class Grid2D<T>(
         currentPath.removeAt(currentPath.size - 1)
         visited.remove(currentPosition)
 
-        // Memorizza i percorsi calcolati nella cache
         memoizationCache[currentPosition] = pathsFromCurrent
 
         return pathsFromCurrent
