@@ -56,22 +56,23 @@ abstract class Grid2D<T>(
     open fun getElementAt(point: Pair<Int, Int>): T? =
         getElementAt(point.first, point.second)
 
-    fun canMove(direction: Direction): Boolean {
+    fun canMove(position: Pair<Int, Int>, direction: Direction): Boolean {
         return when (direction) {
-            Direction.UP -> currentY > 0
-            Direction.DOWN -> currentY < height - 1
-            Direction.LEFT -> currentX > 0
-            Direction.RIGHT -> currentX < width - 1
-            Direction.UP_LEFT -> currentY > 0 && currentX > 0
-            Direction.UP_RIGHT -> currentY > 0 && currentX < width - 1
-            Direction.DOWN_LEFT -> currentY < height - 1 && currentX > 0
-            Direction.DOWN_RIGHT -> currentY < height - 1 && currentX < width - 1
+            Direction.UP -> position.second > 0
+            Direction.DOWN -> position.second < height - 1
+            Direction.LEFT -> position.first > 0
+            Direction.RIGHT -> position.first < width - 1
+            Direction.UP_LEFT -> position.second > 0 && position.first > 0
+            Direction.UP_RIGHT -> position.second > 0 && position.first < width - 1
+            Direction.DOWN_LEFT -> position.second < height - 1 && position.first > 0
+            Direction.DOWN_RIGHT -> position.second < height - 1 && position.first < width - 1
         }
     }
 
-    fun move(direction: Direction): Boolean {
-        if (!canMove(direction)) return false
+    fun canMove(direction: Direction) = canMove(currentX to currentY, direction)
 
+    fun move(direction: Direction, ignoreBorder : Boolean = false): Boolean {
+        if (!ignoreBorder && !canMove(direction)) return false
         when (direction) {
             Direction.UP -> currentY--
             Direction.DOWN -> currentY++
