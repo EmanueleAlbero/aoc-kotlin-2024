@@ -1,6 +1,6 @@
 package common
 
-class CharGrid2D(input: List<String>, mapper: (Char) -> Char): Grid2D<Char>(
+class CharGrid2D(input: List<String>, mapper: (Char) -> Char = { it }): Grid2D<Char>(
     input, mapper
 ) {
     fun getStringChunk(x: Int, y: Int, size: Int, direction: Direction): String {
