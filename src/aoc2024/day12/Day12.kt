@@ -5,16 +5,9 @@ import common.*
 fun main() {
     val allowedDirections = listOf(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT)
 
-    /*
-    Due to "modern" business practices, the price of fence required for a region is found by multiplying
-     that region's area by its perimeter.
-     The total price of fencing all regions on a map is found by adding together
-     the price of fence for every region on the map.
-     */
-
     class ZoneInfo(val area : Int, val perimeter: Int, val totalFences: Int)
 
-    fun removeFences(fences: HashSet<Triple<Int, Int, Direction>>, x: Int, y: Int, originalDirection: Direction, direction: Direction) {
+    fun removeAdjacentFences(fences: HashSet<Triple<Int, Int, Direction>>, fence: Triple<Int, Int, Direction>, direction: Direction) {
         val (dx, dy) = when (direction) {
             Direction.UP -> Pair(0, -1)
             Direction.DOWN -> Pair(0, 1)
@@ -23,11 +16,11 @@ fun main() {
             else -> throw IllegalArgumentException()
         }
 
-        var newX = x + dx
-        var newY = y + dy
+        var newX = fence.first + dx
+        var newY = fence.second + dy
 
         while (true) {
-            val tripleToRemove = Triple(newX, newY, originalDirection)
+            val tripleToRemove = Triple(newX, newY, fence.third)
             if (!fences.contains(tripleToRemove)) {
                 break
             }
@@ -35,6 +28,23 @@ fun main() {
             newX += dx
             newY += dy
         }
+    }
+
+    fun getUniqueFencesCount(fences: HashSet<Triple<Int, Int, Direction>>): Int {
+        var sideCoveredByFences = 0
+        while (fences.isNotEmpty()) {
+            val fence = fences.first()
+            fences.remove(fence)
+            if (fence.third == Direction.UP || fence.third == Direction.DOWN) {
+                removeAdjacentFences(fences, fence, Direction.LEFT)
+                removeAdjacentFences(fences, fence, Direction.RIGHT)
+            } else {
+                removeAdjacentFences(fences, fence, Direction.UP)
+                removeAdjacentFences(fences, fence, Direction.DOWN)
+            }
+            sideCoveredByFences++
+        }
+        return sideCoveredByFences
     }
 
     fun calculateZoneInfo(grid: CharGrid2D, startingPoint: Pair<Int, Int>, coordinates: MutableList<Pair<Int, Int>>): ZoneInfo {
@@ -67,22 +77,7 @@ fun main() {
                 }
             }
         }
-
-        val perimeter = fences.size
-        var sideCoveredByFences = 0
-        while (fences.isNotEmpty()) {
-            val (x, y, direction) = fences.first()
-            fences.remove(Triple(x, y, direction))
-            if (direction == Direction.UP || direction == Direction.DOWN) {
-                removeFences(fences, x, y, direction, Direction.LEFT)
-                removeFences(fences, x, y, direction, Direction.RIGHT)
-            } else {
-                removeFences(fences, x, y, direction, Direction.UP)
-                removeFences(fences, x, y, direction, Direction.DOWN)
-            }
-            sideCoveredByFences ++
-        }
-        return ZoneInfo(visited.size, perimeter, sideCoveredByFences)
+        return ZoneInfo(visited.size, fences.size, getUniqueFencesCount(fences))
     }
 
     fun part1(input: List<String>): Int {
