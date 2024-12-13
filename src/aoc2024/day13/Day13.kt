@@ -5,7 +5,7 @@ import common.println
 import common.readInputAsString
 import kotlin.math.ceil
 
-typealias Coordinates = Pair<Long, Long>
+typealias Coordinates = Pair<Double, Double>
 
 fun main() {
 
@@ -20,62 +20,49 @@ fun main() {
     data class ClawMachine(
         val buttonA: Button,
         val buttonB: Button,
-        val prize: Prize
+        val prize: Prize,
     )
 
-    fun extractMovements(line: String): Coordinates {
+    fun extractMovements2(line: String): Coordinates {
         val regex = "X\\+(\\d+), Y\\+(\\d+)".toRegex()
         val match = regex.find(line) ?: throw IllegalArgumentException("Invalid movement format: $line")
         val (x, y) = match.destructured
-        return x.toLong() to y.toLong()
+        return x.toDouble() to y.toDouble()
     }
 
-    fun extractCoordinates(line: String): Coordinates {
+    fun extractCoordinates2(line: String): Coordinates {
         val regex = "X=(\\d+), Y=(\\d+)".toRegex()
         val match = regex.find(line) ?: throw IllegalArgumentException("Invalid coordinates format: $line")
         val (x, y) = match.destructured
-        return x.toLong() to y.toLong()
+        return x.toDouble() to y.toDouble()
     }
 
-    fun parseClawMachineData(input: String): List<ClawMachine> {
+    fun parseClawMachineData2(input: String): List<ClawMachine> {
         return input
             .split("\r\n\r\n")
             .map {
                 val (buttonA, buttonB, prize) = it.split("\r\n")
                 ClawMachine(
-                    Button(extractMovements(buttonA)),
-                    Button(extractMovements(buttonB)),
-                    Prize(extractCoordinates(prize)))
+                    Button(extractMovements2(buttonA)),
+                    Button(extractMovements2(buttonB)),
+                    Prize(extractCoordinates2(prize)))
             }
     }
 
-    fun matrixDeterminant(a: Coordinates, b: Coordinates): Long {
-        return a.first * b.second - a.second * b.first
-    }
+    fun add2(a: Coordinates, offset: Long) = Coordinates(a.first + offset, a.second + offset)
 
-    fun add(a: Coordinates, offset: Long) = Coordinates(a.first + offset, a.second + offset)
-
-    fun solve(buttonAMovement: Coordinates, buttonBMovement: Coordinates, target: Coordinates): Long {
-        //use cramer method to found solution to
-        // a*xA + b*xB = c
-        // a*yA + b*yB = d
-
-        val det = matrixDeterminant(buttonAMovement, buttonBMovement)
-        if (det == 0L) return 0L
-
-        val tokenA = matrixDeterminant(target, buttonBMovement).toDouble() / det
-        val tokenB = matrixDeterminant(buttonAMovement, target).toDouble() / det
-
-        if (ceil(tokenA) == tokenA && ceil(tokenB) == tokenB) {
-            return tokenA.toLong()*3+tokenB.toLong()
-        }
-        return 0L
+    fun solve2(a: Coordinates, b: Coordinates, c: Coordinates): Long {
+        val aMoves = (b.second*c.first - b.first*c.second) / (b.second*a.first - b.first*a.second)
+        if (ceil(aMoves) != aMoves) return 0L
+        val bMoves: Double = (c.first - a.first*aMoves) / b.first
+        if (ceil(bMoves) != bMoves) return 0L
+        return (aMoves*3+bMoves).toLong()
     }
 
     fun part1(input: String): Long {
-        return parseClawMachineData(input)
+        return parseClawMachineData2(input)
             .sumOf {
-                solve(
+                solve2(
                     it.buttonA.movement,
                     it.buttonB.movement,
                     it.prize.position
@@ -84,12 +71,12 @@ fun main() {
     }
 
     fun part2(input: String): Long {
-        return parseClawMachineData(input)
+        return parseClawMachineData2(input)
             .sumOf {
-                solve(
+                solve2(
                     it.buttonA.movement,
                     it.buttonB.movement,
-                    add(it.prize.position, 10000000000000L)
+                    add2(it.prize.position, 10000000000000L)
                 )
             }
     }
