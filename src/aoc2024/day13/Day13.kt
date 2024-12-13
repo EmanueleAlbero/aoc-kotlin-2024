@@ -55,19 +55,19 @@ fun main() {
 
     fun add(a: Coordinates, offset: Long) = Coordinates(a.first + offset, a.second + offset)
 
-    fun solve(a: Coordinates, b: Coordinates, c: Coordinates): Long {
+    fun solve(buttonAMovement: Coordinates, buttonBMovement: Coordinates, target: Coordinates): Long {
         //use cramer method to found solution to
         // a*xA + b*xB = c
         // a*yA + b*yB = d
 
-        val det = matrixDeterminant(a, b)
+        val det = matrixDeterminant(buttonAMovement, buttonBMovement)
         if (det == 0L) return 0L
 
-        val ta = matrixDeterminant(c, b).toDouble() / det
-        val tb = matrixDeterminant(a, c).toDouble() / det
+        val tokenA = matrixDeterminant(target, buttonBMovement).toDouble() / det
+        val tokenB = matrixDeterminant(buttonAMovement, target).toDouble() / det
 
-        if (ceil(ta) == ta && ceil(tb) == tb) {
-            return ta.toLong()*3+tb.toLong()
+        if (ceil(tokenA) == tokenA && ceil(tokenB) == tokenB) {
+            return tokenA.toLong()*3+tokenB.toLong()
         }
         return 0L
     }
