@@ -17,7 +17,7 @@ fun main() {
         else -> Cords(0,0)
     }
 
-    class Robot(val position: Cords, speed: Int) {
+    class Robot(val position: Cords) {
         fun push(grid: NumberGrid2D, direction: Direction) {
             val move = direction.toCords()
             val nextElement = grid.getElementAt(position.x + move.x, position.y + move.y)
@@ -39,19 +39,19 @@ fun main() {
 
         private fun pushVertically(grid: NumberGrid2D, direction: Direction, move: Cords) {
             var canBeMoved = false
-            var boxToMove: MutableSet<Item<Int>> = mutableSetOf()
+            val boxToMove: MutableSet<Item<Int>> = mutableSetOf()
             var toBeMoved: MutableSet<Cords> = mutableSetOf()
 
-            var newPosition = Cords(position.x + move.x, position.y + move.y)
+            val newPosition = Cords(position.x + move.x, position.y + move.y)
             addBox(toBeMoved, grid, newPosition)
-            toBeMoved.forEach { boxToMove.add(Item<Int>(it.x, it.y, null, grid.getElementAt(it.x, it.y)!!)) }
-            while (!toBeMoved.any { it -> grid.getElementAt(it.x, it.y+move.y)!!  == -1}){
+            toBeMoved.forEach { boxToMove.add(Item(it.x, it.y, null, grid.getElementAt(it.x, it.y)!!)) }
+            while (!toBeMoved.any { grid.getElementAt(it.x, it.y+move.y)!!  == -1}){
 
-                if (toBeMoved.all { it -> grid.getElementAt(it.x, it.y+move.y)!!  == 0}){
+                if (toBeMoved.all { grid.getElementAt(it.x, it.y+move.y)!!  == 0}){
                     canBeMoved = true
                     break
                 }
-                var toBeMoved2 = mutableSetOf<Cords>()
+                val toBeMoved2 = mutableSetOf<Cords>()
 
                 toBeMoved
                     .filter {
@@ -62,7 +62,7 @@ fun main() {
                     }
 
                 toBeMoved = toBeMoved2
-                toBeMoved.forEach { boxToMove.add(Item<Int>(it.x, it.y, null, grid.getElementAt(it.x, it.y)!!)) }
+                toBeMoved.forEach { boxToMove.add(Item(it.x, it.y, null, grid.getElementAt(it.x, it.y)!!)) }
             }
 
             if (canBeMoved) {
@@ -73,7 +73,7 @@ fun main() {
                     UP -> {
                         boxToMove
                             .sortedBy { it.y }
-                            .forEach() {
+                            .forEach {
                                 grid.setValue(it.x, it.y - 1, it.value)
                                 grid.setValue(it.x, it.y, 0)
                             }
@@ -81,7 +81,7 @@ fun main() {
                     else -> {
                         boxToMove
                             .sortedByDescending { it.y }
-                            .forEach() {
+                            .forEach {
                                 grid.setValue(it.x, it.y + 1, it.value)
                                 grid.setValue(it.x, it.y, 0)
                             }
@@ -182,9 +182,9 @@ fun main() {
                 gridData
             ) {
                 when (it) {
-                    '#' -> -1;
-                    'O' -> 1;
-                    '@' -> 2;
+                    '#' -> -1
+                    'O' -> 1
+                    '@' -> 2
                     else -> 0
                 }
             }
@@ -200,11 +200,11 @@ fun main() {
                     }
                 }
 
-        var robot = grid.find(2)!!.let { Robot( Cords(it.first, it.second), 0) }
+        val robot = grid.find(2)!!.let { Robot( Cords(it.first, it.second)) }
         grid.setValue(robot.position.x, robot.position.y, 0)
 
         //printMap(grid, robot)
-        operations.forEachIndexed() { index, it ->
+        operations.forEachIndexed { _, it ->
             robot.push(grid, it)
             /*if (index < operations.size - 1)
                 operations[index+1].println()
@@ -236,11 +236,11 @@ fun main() {
                 gridData
             ) {
                 when (it) {
-                    '#' -> -1;
-                    'O' -> 1;
-                    '@' -> 2;
-                    '[' -> 3;
-                    ']' -> 4;
+                    '#' -> -1
+                    'O' -> 1
+                    '@' -> 2
+                    '[' -> 3
+                    ']' -> 4
                     else -> 0
                 }
             }
@@ -256,10 +256,10 @@ fun main() {
                     }
                 }
 
-        var robot = grid.find(2)!!.let { Robot( Cords(it.first, it.second), 0) }
+        val robot = grid.find(2)!!.let { Robot( Cords(it.first, it.second)) }
         grid.setValue(robot.position.x, robot.position.y, 0)
 
-        operations.forEachIndexed() { index, it ->
+        operations.forEachIndexed { _, it ->
             robot.push(grid, it)
         }
 
