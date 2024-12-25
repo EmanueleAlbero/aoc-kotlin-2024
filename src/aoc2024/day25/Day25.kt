@@ -7,21 +7,36 @@ import common.readInputAsString
 fun main() {
 
     fun part1(input: String): Int {
-        val keys = mutableSetOf<Long>()
-        val doors = mutableSetOf<Long>()
+        val keys = mutableListOf<Long>()
+        val doors = mutableListOf<Long>()
 
-        input.split("\r\n\r\n").map {
-            val value = it.split("\r\n").map {
-                it.replace('.', '0').replace('#', '1')
-            }.joinToString("").toLong(2)
-            if ((value and 0b1) == 1L) {
+        val parts = input.split("\r\n\r\n")
+        for (part in parts) {
+            val lines = part.split("\r\n")
+            var value = 0L
+
+            for (line in lines) {
+                for (c in line) {
+                    value = (value shl 1) or when (c) {
+                        '.' -> 0L
+                        '#' -> 1L
+                        else -> throw IllegalArgumentException()
+                    }
+                }
+            }
+
+            if ((value and 1L) == 1L) {
                 keys.add(value)
             } else {
                 doors.add(value)
             }
         }
-        return keys.sumOf { key ->
-            doors.count { door -> door and key == 0L }
+
+        val doorsArray = doors.toLongArray()
+        val keysArray = keys.toLongArray()
+
+        return keysArray.sumOf { key ->
+            doorsArray.count { door -> door and key == 0L }
         }
     }
 
