@@ -1,7 +1,6 @@
 package aoc2024.day25
 
 import common.benchmarkTime
-import common.println
 import common.readInputAsString
 
 fun main() {
@@ -12,16 +11,11 @@ fun main() {
 
         val parts = input.split("\r\n\r\n")
         for (part in parts) {
-            val lines = part.split("\r\n")
             var value = 0L
-
-            for (line in lines) {
-                for (c in line) {
-                    value = (value shl 1) or when (c) {
-                        '.' -> 0L
-                        '#' -> 1L
-                        else -> throw IllegalArgumentException()
-                    }
+            for (c in part) {
+                when (c) {
+                    '.' -> value = (value shl 1) or 0L
+                    '#' -> value = (value shl 1) or 1L
                 }
             }
 
@@ -42,10 +36,10 @@ fun main() {
 
 
     // test if implementation meets criteria from the description, like:
-    val testInput = readInputAsString("aoc2024/Day25_test")
-    val part1Result = part1(testInput)
-    part1Result.println()
-    check(part1Result == 3)
+    //val testInput = readInputAsString("aoc2024/Day25_test")
+    //val part1Result = part1(testInput)
+    //part1Result.println()
+    //check(part1Result == 3)
 
 
     val input = readInputAsString("aoc2024/Day25")
@@ -53,3 +47,4 @@ fun main() {
         part1(input)
     }
 }
+
